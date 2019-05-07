@@ -79,7 +79,7 @@ cd /pai/deployment/quick-start/
 cp quick-start-example.yaml quick-start.yaml  
 vim quick-start.yaml
 ```
-替换自己的集群ip和ssh信息
+替换自己的集群ip和ssh信息，ip最好使用内网ip，公网ip可能会被限制访问
 ```
 # quick-start.yaml
 
@@ -111,5 +111,217 @@ ssh-password: pai-password
 - 生成配置文件
 ```
 cd /pai  
-        python paictl.py config generate -i /pai/deployment/quick-start/quick-start.yaml -o ~/pai-config -f
+python paictl.py config generate -i /pai/deployment/quick-start/quick-start.yaml -o ~/pai-config -f  
+cd ~/pai-config/
 ```
+
+kubernetes-configuration.yaml  
+只需要修改docker-registry，国内访问不了Google镜像库，替换国内的就可以  
+```
+# Copyright (c) Microsoft Corporation
+# All rights reserved.
+#
+# MIT License
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+# documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+# the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+# to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+# The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+# BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+# DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+kubernetes:
+  # Find the namesever in  /etc/resolv.conf
+  cluster-dns: 10.46.255.1
+  # To support k8s ha, you should set an lb address here.
+  # If deploy k8s with single master node, please set master IP address here
+  load-balance-ip: 10.46.179.174
+
+  # specify an IP range not in the same network segment with the host machine.
+  service-cluster-ip-range: 10.254.0.0/16
+  # According to the etcdversion, you should fill a corresponding backend name.
+  # If you are not familiar with etcd, please don't change it.
+  storage-backend: etcd3
+  # The docker registry used in the k8s deployment. If you can access to gcr, we suggest to use gcr.
+  docker-registry: docker.io/mirrorgooglecontainers
+  # http://gcr.io/google_containers/hyperkube. Or the tag in your registry.
+  hyperkube-version: v1.9.9
+  # http://gcr.io/google_containers/etcd. Or the tag in your registry.
+  # If you are not familiar with etcd, please don't change it.
+  etcd-version: 3.2.17
+  # http://gcr.io/google_containers/kube-apiserver. Or the tag in your registry.
+  apiserver-version: v1.9.9
+  # http://gcr.io/google_containers/kube-scheduler. Or the tag in your registry.
+  kube-scheduler-version: v1.9.9
+  # http://gcr.io/google_containers/kube-controller-manager
+  kube-controller-manager-version:  v1.9.9
+  # http://gcr.io/google_containers/kubernetes-dashboard-amd64
+  dashboard-version: v1.8.3
+  # The path to storage etcd data.
+  etcd-data-path: "/var/etcd"
+
+  # #Enable QoS feature for k8s or not. Default value is "true"
+  # qos-switch: "true"
+```
+
+layout.yaml  
+填写自己的机器配置信息  
+```
+# If corresponding values aren't be set in the machine list, the default value will be filled in.
+
+# kubernetes api server and dashboard host
+kubernetes:
+  api-servers-url: http://10.46.179.174:8080
+  dashboard-url: http://10.46.179.174:9090
+
+# TODO please modify it according to your own hardware
+machine-sku:
+  GENERIC:
+    mem: 62G
+    gpu:
+      type: generic
+      count: 1
+    cpu:
+      vcore: 16
+    os: ubuntu16.04
+
+machine-list:
+  - dashboard: "true"
+    docker-data: "/var/lib/docker"
+    etcdid: "etcdid1"
+    hostip: "10.46.179.174"
+    hostname: "10-46-179-174"
+    k8s-role: "master"
+    machine-type: "GENERIC"
+    nodename: "10.46.179.174"
+    pai-master: "true"
+    password: "xiulian"
+    ssh-port: "22"
+    username: "openpai"
+    zkid: "1"
+
+  - docker-data: "/var/lib/docker"
+    hostip: "10.46.178.107"
+    hostname: "10-46-178-107"
+    k8s-role: "worker"
+    machine-type: "GENERIC"
+    nodename: "10.46.178.107"
+    pai-worker: "true"
+    password: "xiulian"
+    ssh-port: "22"
+    username: "openpai"
+
+  - docker-data: "/var/lib/docker"
+    hostip: "10.46.28.140"
+    hostname: "10-46-28-140"
+    k8s-role: "worker"
+    machine-type: "GENERIC"
+    nodename: "10.46.28.140"
+    pai-worker: "true"
+    password: "xiulian"
+    ssh-port: "22"
+    username: "openpai"
+
+```
+services-configuration.yaml  
+tag 按实际的版本填写，不然后面可能会出错  
+cluster-id可以改一下，后面会用到  
+rest-server下面的用户名和密码最好改一下，后面登录平台的时候用到  
+
+```
+cluster:
+  common:
+    cluster-id: xiulian
+  #
+  #  # HDFS, zookeeper data path on your cluster machine.
+  #  data-path: "/datastorage"
+
+  # the docker registry to store docker images that contain system services like frameworklauncher, hadoop, etc.
+  docker-registry:
+
+    # The namespace in your registry. If the registry is docker.io, the namespace will be your user account.
+    namespace: openpai
+
+    # E.g., gcr.io.
+    # if the registry is hub.docker, please fill this value with docker.io
+    domain: docker.io
+    # If the docker registry doesn't require authentication, please comment username and password
+    #username: <username>
+    #password: <password>
+
+    tag: v0.12.0
+
+    # The name of the secret in kubernetes will be created in your cluster
+    # Must be lower case, e.g., regsecret.
+    secret-name: pai-secret
+
+
+#Uncomment following lines if you want to customize yarn
+#hadoop-resource-manager:
+#  # job log retain time
+#  yarn_log_retain_seconds: 2592000
+#  # port for yarn exporter
+#  yarn_exporter_port: 9459
+
+
+#Uncomment following lines if you want to customize hdfs
+#hadoop-data-node:
+#  # storage path for hdfs, support comma-delimited list of directories, eg. /path/to/folder1,/path/to/folder2 ...
+#  # if left empty, will use cluster.common.data-path/hdfs/data
+#  storage_path:
+
+
+# uncomment following if you want to change customeize yarn-frameworklauncher
+#yarn-frameworklauncher:
+#  frameworklauncher-port: 9086
+
+
+rest-server:
+  # database admin username
+  default-pai-admin-username: root
+  # database admin password
+  default-pai-admin-password: xiulian
+```
+
+#### 部署Kubernetes
+
+http://\<master>:9090 查看进度,需要等待一段时间  
+
+```
+cd pai
+
+python paictl.py cluster k8s-bootup \
+  -p ~/pai-config
+```
+
+#### 更新配置文件到kubernetes
+
+```
+cd pai  
+
+python paictl.py config push -p ~/pai-config/ -c ~/.kube/config
+```
+
+#### 启动OpenPAI
+
+如果不指定-n，默认下载所有的service，包括rest-server, webportal, watchdog等    
+这里需要等待比较长的时间  
+
+```
+cd pai
+
+python paictl.py service start \
+  [ -c ~/.kube/config] \
+  [ -n service-name ]
+```
+
+### 安装结束
+
+![kubernetes](image/kubernetes.png)
+
+![openpai](image/openpai.png)
