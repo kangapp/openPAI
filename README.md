@@ -54,14 +54,14 @@ sudo docker pull docker.io/openpai/dev-box:v0.12.0
 - 运行dev-box
 ```
 sudo docker run -itd \  
-        -e COLUMNS=$COLUMNS -e LINES=$LINES -e TERM=$TERM \  
-        -v /var/run/docker.sock:/var/run/docker.sock \  
-        -v /pathConfiguration:/cluster-configuration  \  
-        -v /hadoop-binary:/hadoop-binary  \  
-        --pid=host \  
-        --privileged=true \  
-        --net=host \  
-        --name=dev-box \  
+        -e COLUMNS=$COLUMNS -e LINES=$LINES -e TERM=$TERM \
+        -v /var/run/docker.sock:/var/run/docker.sock \
+        -v /pathConfiguration:/cluster-configuration  \
+        -v /hadoop-binary:/hadoop-binary  \
+        --pid=host \
+        --privileged=true \
+        --net=host \
+        --name=dev-box \
         docker.io/openpai/dev-box:v0.12.0
 ```
 
