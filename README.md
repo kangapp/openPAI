@@ -325,3 +325,15 @@ python paictl.py service start \
 ![kubernetes](image/kubernetes.png)
 
 ![openpai](image/openpai.png)
+
+### 卸载
+
+```
+# 卸载openpai组件
+cd /pai  
+python paictl.py service delete -c ~/.kube/config  
+
+# 卸载k8s组件  
+cd /pai  
+python paictl.py cluster k8s-clean -p ~/pai-config/
+```
