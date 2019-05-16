@@ -337,3 +337,17 @@ python paictl.py service delete -c ~/.kube/config
 cd /pai  
 python paictl.py cluster k8s-clean -p ~/pai-config/
 ```
+
+### 添加服务
+
+#### zookeeper
+
+> openpai默认安装了zookeeper服务，但是默认只在master节点上启动，通过下面步骤配置可以启动集群服务
+
+1. 在layout.xml配置文件中，machine-list的每个节点递增添加zkid参数  
+2. 在zookeeper文件夹下修改service.yaml文件，deploy-rules下修改成`notin: no-zookeeper`
+3. 重新启动zookeeper服务
+
+#### hbase
+
+参考文档：https://github.com/microsoft/pai/blob/master/docs/pai-management/doc/add-service.md  
