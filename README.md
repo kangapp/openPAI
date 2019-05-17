@@ -329,6 +329,8 @@ python paictl.py service start \
 ### 卸载
 
 ```
+python paictl.py service [delete|start|stop] -c ~/.kube/config [-n name]  
+
 # 卸载openpai组件
 cd /pai  
 python paictl.py service delete -c ~/.kube/config  
