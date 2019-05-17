@@ -1,0 +1,69 @@
+# Copyright (c) Microsoft Corporation
+# All rights reserved.
+#
+# MIT License
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+# documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+# the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+# to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+# The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+# BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+# DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: kafka-ds
+spec:
+  selector:
+    matchLabels:
+      app: kafka
+  template:
+    metadata:
+      labels:
+        app: kafka
+    spec:
+      hostNetwork: true
+      hostPID: true
+      containers:
+      - name:  kafka
+        image: {{ cluster_cfg['cluster']['docker-registry']['prefix'] }}kafka:{{ cluster_cfg['cluster']['docker-registry']['tag'] }}
+        imagePullPolicy: Always
+        volumeMounts:
+        - mountPath: /kafka-configuration
+          name: kafka-config-volume
+        - mountPath: /var/lib/kafka-logs
+          name: kafka-log-storage
+        - mountPath: /host-configuration
+          name: host-confg-volume
+        readinessProbe:
+          exec:
+            command:
+            - cat
+            - /jobstatus/jobok
+          initialDelaySeconds: 5
+          periodSeconds: 3
+        env:
+        - name: GENERATE_CONFIG
+          value: kafka-generate.sh
+        - name: START_SERVICE
+          value: kafka-start.sh
+        - name: MASTER_ADDRESS
+          value: {{ cluster_cfg[ "hadoop-name-node" ][ "master-ip" ] }}
+      imagePullSecrets:
+      - name: {{ cluster_cfg['cluster']['docker-registry']['secret-name'] }}
+      volumes:
+      - name: kafka-log-storage
+        hostPath:
+          path: {{ cluster_cfg["cluster"]["common"][ "data-path" ] }}/kafka/logs
+      - name: kafka-config-volume
+        configMap:
+          name: kafka-configuration
+      - name: host-confg-volume
+        configMap:
+          name: host-configuration
