@@ -351,3 +351,9 @@ python paictl.py cluster k8s-clean -p ~/pai-config/
 #### hbase
 
 参考文档：https://github.com/microsoft/pai/blob/master/docs/pai-management/doc/add-service.md  
+
+[hbase服务](https://github.com/kangapp/openPAI/tree/master/hbase)
+
+#### kafka
+
+[kafka服务](https://github.com/kangapp/openPAI/tree/master/kafka)
