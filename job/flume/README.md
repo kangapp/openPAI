@@ -26,12 +26,13 @@ single版本为了让flume Agent在目标机器上运行 => kangapp/flume:single
 ### Usage
 ```
 #拉取镜像
-docker pull kangapp/flume  
+docker pull kangapp/flume:single  
 
 #运行容器
 docker run \
   --env FLUME_AGENT_NAME=docker \
   --volume /conf/config.conf:/usr/local/conf/flume.conf \
+  --volume /logs:/usr/local/logs \
   --detach \
   kangapp/flume
 ```
