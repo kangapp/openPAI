@@ -359,3 +359,9 @@ python paictl.py cluster k8s-clean -p ~/pai-config/
 #### kafka
 
 [kafka服务](https://github.com/kangapp/openPAI/tree/master/kafka)
+
+### 运行作业
+
+#### Flume
+
+[Flume作业](https://github.com/kangapp/openPAI/tree/master/job/flume)
